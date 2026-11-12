@@ -1,0 +1,541 @@
+<!DOCTYPE html><html lang="en">  <head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>Achievement Tracker</title><style>  
+* {  
+  box-sizing: border-box;  
+}  body {
+margin: 0;
+padding: 20px;
+background: #101114;
+color: #eeeeee;
+font-family: Arial, sans-serif;
+}
+
+.container {
+max-width: 500px;
+margin: auto;
+}
+
+h1 {
+font-size: 25px;
+margin-bottom: 5px;
+}
+
+.subtitle {
+color: #888;
+font-size: 13px;
+margin-bottom: 25px;
+}
+
+.points-box {
+background: #1b1c21;
+border: 1px solid #303138;
+border-radius: 14px;
+padding: 22px;
+margin-bottom: 25px;
+}
+
+.points-label {
+color: #999;
+font-size: 13px;
+}
+
+#totalPoints {
+font-size: 38px;
+font-weight: bold;
+margin-top: 8px;
+color: #a78bfa;
+}
+
+.section-title {
+font-size: 17px;
+margin-bottom: 12px;
+}
+
+.achievement {
+background: #1b1c21;
+border: 1px solid #303138;
+padding: 16px;
+border-radius: 12px;
+margin-bottom: 10px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+}
+
+.achievement h3 {
+font-size: 15px;
+margin: 0 0 6px;
+}
+
+.achievement p {
+color: #999;
+font-size: 12px;
+margin: 0;
+}
+
+.reward {
+color: #a78bfa;
+font-size: 13px;
+font-weight: bold;
+margin-top: 7px;
+}
+
+.tier {
+color: #e9c46a;
+font-size: 11px;
+margin-bottom: 6px;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+button {
+background: #a78bfa;
+color: #17131f;
+border: none;
+padding: 10px 13px;
+border-radius: 8px;
+font-weight: bold;
+cursor: pointer;
+min-height: 40px;
+}
+
+button:disabled {
+background: #34343c;
+color: #888;
+cursor: not-allowed;
+}
+
+button:active {
+transform: scale(0.97);
+}
+
+.add-box {
+margin-top: 25px;
+padding: 18px;
+background: #1b1c21;
+border: 1px solid #303138;
+border-radius: 12px;
+}
+
+input, select {
+width: 100%;
+padding: 12px;
+margin: 7px 0 12px;
+background: #101114;
+border: 1px solid #383941;
+color: white;
+border-radius: 8px;
+font-size: 16px;
+}
+
+label {
+font-size: 12px;
+color: #aaa;
+}
+
+.full-button {
+width: 100%;
+}
+
+.footer {
+text-align: center;
+color: #666;
+font-size: 12px;
+margin-top: 25px;
+}
+
+#notice {
+color: #a78bfa;
+font-size: 13px;
+min-height: 18px;
+margin: 10px 0;
+}
+
+.secondary-button {
+background: #292a30;
+color: #eee;
+}
+
+@media (max-width: 360px) {
+body {
+padding: 12px;
+}
+
+.achievement {
+padding: 12px;
+}
+
+.achievement button {
+padding: 9px;
+}
+}
+</style></head><body>
+
+<div class="container">  <h1>Achievements</h1>  
+  <div class="subtitle">Complete tasks. Earn points. Keep progressing.</div>  <div class="points-box">  
+    <div class="points-label">TOTAL POINTS EARNED</div>  
+    <div id="totalPoints" aria-live="polite">0</div>  
+  </div>  <div class="section-title">Your achievements</div>  
+  <div id="achievementList"></div>  <div id="notice" role="status"></div>  <button id="undoButton" class="full-button secondary-button" disabled>  
+    ↶ Undo last completion  
+  </button>  <div class="add-box">  
+    <div class="section-title">Create achievement</div><form id="achievementForm">  
+  <label for="taskName">Achievement name</label>  
+  <input id="taskName" type="text"  
+    placeholder="e.g. Complete a chapter"  
+    maxlength="70" required>  <label for="difficulty">Difficulty / starting reward</label>
+<select id="difficulty">
+<option value="10">Easy — 10 points</option>
+<option value="25">Medium — 25 points</option>
+<option value="50">Hard — 50 points</option>
+<option value="100">Extreme — 100 points</option>
+</select>
+
+<label for="refreshTime">Achievement refresh interval</label>
+<select id="refreshTime">
+<option value="86400000">Every 24 hours</option>
+<option value="604800000">Every 7 days</option>
+<option value="2592000000">Every 30 days</option>
+<option value="0">One-time achievement</option>
+</select>
+
+  <button class="full-button" type="submit">  
+    + Add achievement  
+  </button>  
+</form>    </div>  <div style="margin-top:15px">  
+    <button id="resetButton" class="full-button secondary-button">  
+      Reset all progress  
+    </button>  
+  </div>  <div class="footer">  
+    Your points and achievements are saved on this device. <br>  
+    App made by Daimond Games... <br>  
+    Achievement Tracker v1.0.1Prototype-2026 Subjected to copyright... <br>  
+    Made using HTML <br>  
+    Source Code on Github...
+    <a href="https://github.com/DaimondGames/AchievementTracker">
+   <h3>AchievementTracker: GitHub ↗</h3></a>
+   
+   <a href="https://github.com/DaimondGames/">
+   <h3>DaimondGames: GitHub ↗</h3></a>
+   
+  </div></div><script>  
+const STORAGE_KEY = "achievementTracker_v1";  const defaultAchievements = [
+{
+id: "starter_1",
+name: "Complete a day",
+points: 10,
+interval: 86400000,
+lastCompleted: 0,
+tier: 1,
+basePoints: 10,
+completions: 0
+},
+{
+id: "starter_2",
+name: "Win a game match",
+points: 50,
+interval: 86400000,
+lastCompleted: 0,
+tier: 1,
+basePoints: 50,
+completions: 0
+},
+{
+id: "starter_3",
+name: "Add a achievement below",
+points: 10,
+interval: 0,
+lastCompleted: 0,
+tier: 1,
+basePoints: 10,
+completions: 0
+}
+];
+
+let data;
+let lastUndo = null;
+
+function loadData() {
+try {
+const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+
+if (  
+  saved &&  
+  Number.isSafeInteger(saved.points) &&  
+  saved.points >= 0 &&  
+  Array.isArray(saved.achievements)  
+) {  
+  data = saved;  
+
+  data.achievements = data.achievements  
+    .filter(a =>  
+      a &&  
+      typeof a.id === "string" &&  
+      typeof a.name === "string" &&  
+      a.name.length <= 70 &&  
+      Number.isSafeInteger(a.points) &&  
+      a.points > 0 &&  
+      Number.isFinite(a.interval) &&  
+      a.interval >= 0 &&  
+      Number.isFinite(a.lastCompleted)  
+    )  
+    .map(a => ({  
+      ...a,  
+      tier: Number.isSafeInteger(a.tier) && a.tier >= 1  
+        ? a.tier : 1,  
+      basePoints: Number.isSafeInteger(a.basePoints) &&  
+        a.basePoints > 0 ? a.basePoints : a.points,  
+      completions: Number.isSafeInteger(a.completions) &&  
+        a.completions >= 0 ? a.completions : 0  
+    }));  
+
+  lastUndo = null;  
+  return;  
+}
+
+} catch (error) {
+console.warn("Could not load saved progress.", error);
+}
+
+data = {
+points: 0,
+achievements: defaultAchievements.map(a => ({...a}))
+};
+
+saveData();
+}
+
+function saveData() {
+try {
+localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+} catch (error) {
+showNotice("Unable to save. Check browser storage settings.");
+}
+}
+
+function getRemaining(a) {
+if (a.interval === 0 || a.lastCompleted === 0) return 0;
+
+return Math.max(0, a.lastCompleted + a.interval - Date.now());
+}
+
+function formatTime(ms) {
+const hours = Math.floor(ms / 3600000);
+const days = Math.floor(hours / 24);
+
+if (days > 0) return days + "d " + (hours % 24) + "h";
+if (hours > 0) return hours + "h";
+
+return Math.max(1, Math.ceil(ms / 60000)) + "m";
+}
+
+function formatInterval(ms) {
+const days = ms / 86400000;
+
+if (Number.isInteger(days)) {
+return days + (days === 1 ? " day" : " days");
+}
+
+return formatTime(ms);
+}
+
+function render() {
+document.getElementById("totalPoints").textContent =
+data.points.toLocaleString();
+
+document.getElementById("undoButton").disabled = !lastUndo;
+
+const list = document.getElementById("achievementList");
+list.replaceChildren();
+
+data.achievements.forEach(a => {
+const remaining = getRemaining(a);
+
+const completed = a.interval === 0  
+  ? a.lastCompleted > 0  
+  : remaining > 0;  
+
+const card = document.createElement("div");  
+card.className = "achievement";  
+
+const info = document.createElement("div");  
+info.style.minWidth = "0";  
+
+const tier = document.createElement("div");  
+tier.className = "tier";  
+tier.textContent = "Tier " + a.tier;  
+
+const title = document.createElement("h3");  
+title.textContent = a.name;  
+
+const detail = document.createElement("p");  
+detail.textContent = a.interval === 0  
+  ? "One-time achievement"  
+  : "Refreshes every " + formatInterval(a.interval);  
+
+const reward = document.createElement("div");  
+reward.className = "reward";  
+reward.textContent = "+" + a.points + " points";  
+
+const progress = document.createElement("p");  
+progress.style.marginTop = "7px";  
+progress.textContent = "Completed " + a.completions +  
+  (a.completions === 1 ? " time" : " times");  
+
+info.append(tier, title, detail, reward, progress);  
+
+const button = document.createElement("button");  
+button.style.flexShrink = "0";  
+button.disabled = completed;  
+
+button.textContent = completed  
+  ? (a.interval === 0 ? "Completed ✓" : formatTime(remaining))  
+  : "Complete";  
+
+button.addEventListener("click", () => completeAchievement(a.id));  
+
+card.append(info, button);  
+list.append(card);
+
+});
+}
+
+function completeAchievement(id) {
+const a = data.achievements.find(item => item.id === id);
+
+if (!a || getRemaining(a) > 0 ||
+(a.interval === 0 && a.lastCompleted > 0)) {
+return;
+}
+
+if (
+!Number.isSafeInteger(a.points) ||
+data.points > Number.MAX_SAFE_INTEGER - a.points
+) {
+showNotice("Point limit reached.");
+return;
+}
+
+// Save the previous state so the last completion can be undone.
+lastUndo = {
+id: a.id,
+points: data.points,
+achievement: {...a}
+};
+
+const earned = a.points;
+
+data.points += earned;
+a.lastCompleted = Date.now();
+a.completions += 1;
+
+// Increase difficulty and reward for the next completion.
+a.tier += 1;
+
+// Each new tier awards 50% more points, rounded up.
+a.points = Math.ceil(a.basePoints * (1 + (a.tier - 1) * 0.5));
+
+saveData();
+render();
+
+showNotice("Achievement completed! +" + earned +
+" points. Tier " + a.tier + " unlocked!");
+}
+
+document.getElementById("undoButton").addEventListener("click", () => {
+if (!lastUndo) return;
+
+const saved = lastUndo;
+const a = data.achievements.find(item => item.id === saved.id);
+
+if (!a) {
+showNotice("Cannot undo: achievement no longer exists.");
+return;
+}
+
+data.points = saved.points;
+
+// Restore the achievement to its exact previous tier and cooldown.
+Object.assign(a, saved.achievement);
+
+lastUndo = null;
+
+saveData();
+render();
+showNotice("Last completion undone.");
+});
+
+document.getElementById("achievementForm")
+.addEventListener("submit", event => {
+event.preventDefault();
+
+const name = document.getElementById("taskName").value.trim();  
+const points = Number(document.getElementById("difficulty").value);  
+const interval = Number(document.getElementById("refreshTime").value);  
+
+if (!name || name.length > 70) {  
+  showNotice("Enter a name of 1–70 characters.");  
+  return;  
+}  
+
+if (data.achievements.length >= 100) {  
+  showNotice("Maximum of 100 achievements reached.");  
+  return;  
+}  
+
+data.achievements.push({  
+  id: crypto.randomUUID  
+    ? crypto.randomUUID()  
+    : Date.now().toString(36) + Math.random().toString(36).slice(2),  
+  name,  
+  points,  
+  basePoints: points,  
+  interval,  
+  lastCompleted: 0,  
+  tier: 1,  
+  completions: 0  
+});  
+
+lastUndo = null;  
+
+saveData();  
+render();  
+event.target.reset();  
+showNotice("Achievement added!");
+
+});
+
+function showNotice(message) {
+document.getElementById("notice").textContent = message;
+}
+
+document.getElementById("resetButton")
+.addEventListener("click", () => {
+if (!confirm("Reset all points and achievements? This cannot be undone.")) {
+return;
+}
+
+data = {  
+  points: 0,  
+  achievements: defaultAchievements.map(a => ({...a}))  
+};  
+
+lastUndo = null;  
+
+saveData();  
+render();  
+showNotice("Progress reset.");
+
+});
+
+loadData();
+render();
+
+// Refresh countdowns automatically.
+setInterval(render, 30000);
+</script></body>
+
+</html>
